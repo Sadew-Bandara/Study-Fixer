@@ -9,6 +9,23 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Dark Mode Visibility Fixes */
+        [data-theme="dark"] #clock-display {
+            color: #ffffff; /* Changed to white for better visibility */
+        }
+        [data-theme="dark"] .nav-btn {
+            color: #f8fafc;
+        }
+        [data-theme="dark"] .calendar-header button i {
+            stroke: #ffffff;
+        }
+        /* Force browser-native calendar and clock icons to white in dark mode */
+        [data-theme="dark"] input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -18,12 +35,14 @@
                 <h1 class="logo">Study-Fixer</h1>
             </div>
             <nav>
-                <button onclick="showSection('dashboard')" class="nav-btn"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-                <button onclick="showSection('finance')" class="nav-btn"><i data-lucide="wallet"></i> Finance</button>
-                <button onclick="showSection('lectures')" class="nav-btn"><i data-lucide="book-open"></i> Lectures</button>
-                <button onclick="showSection('notepad')" class="nav-btn"><i data-lucide="file-text"></i> Notepad</button>
-                <button onclick="showSection('calendar')" class="nav-btn"><i data-lucide="calendar"></i> Calendar</button>
-                <button onclick="showSection('gpa')" class="nav-btn"><i data-lucide="calculator"></i> GPA Tracker</button>
+                <button onclick="showSection('dashboard')" class="nav-btn"><i data-lucide="layout-dashboard" class="icon-dashboard"></i> Dashboard</button>
+                <button onclick="showSection('finance')" class="nav-btn"><i data-lucide="wallet" class="icon-finance"></i> Finance</button>
+                <button onclick="showSection('notepad')" class="nav-btn"><i data-lucide="file-text" class="icon-notepad"></i> Notepad</button>
+                <button onclick="showSection('calendar')" class="nav-btn"><i data-lucide="calendar" class="icon-calendar"></i> Calendar</button>
+                <button onclick="showSection('gpa')" class="nav-btn"><i data-lucide="calculator" class="icon-gpa"></i> GPA Tracker</button>
+                <button onclick="showSection('module-notes')" class="nav-btn"><i data-lucide="folder-open" class="icon-notes"></i> Module Notes</button>
+                <button onclick="showSection('work-schedule')" class="nav-btn"><i data-lucide="calendar-check" class="icon-schedule"></i> Work Schedule</button>
+                <button onclick="showSection('curriculum-modules')" class="nav-btn"><i data-lucide="book" class="icon-curriculum"></i> Modules</button>
             </nav>
         </aside>
 
@@ -35,7 +54,66 @@
             <!-- Financial Tracker Section -->
             <section id="finance" class="app-section" style="display:none;">
                 <h2>Financial Tracker</h2>
-                <div class="finance-grid">
+                <div class="finance-tabs">
+                    <button class="finance-tab-btn active" onclick="showFinanceSubSection('overview')">Overview</button>
+                    <button class="finance-tab-btn" onclick="showFinanceSubSection('add')">Add Entry</button>
+                    <button class="finance-tab-btn" onclick="showFinanceSubSection('accounts')">Accounts</button>
+                    <button class="finance-tab-btn" onclick="showFinanceSubSection('goals')">Goals</button>
+                    <button class="finance-tab-btn" onclick="showFinanceSubSection('summary')">Summary</button>
+                    <button class="finance-tab-btn" onclick="showFinanceSubSection('history')">History</button>
+                </div>
+
+                <div id="finance-overview" class="finance-sub-section">
+                    <h3>Overview</h3>
+                    <div class="finance-overview-grid">
+                        <div class="overview-card">
+                            <h4>Total Balance</h4>
+                            <p id="total-balance">0.00</p>
+                        </div>
+                        <div class="overview-card">
+                            <h4>Monthly Income</h4>
+                            <p id="monthly-income">0.00</p>
+                        </div>
+                        <div class="overview-card">
+                            <h4>Upcoming Expenses (This Month)</h4>
+                            <p id="monthly-expenses">0.00</p>
+                        </div>
+                        <div class="overview-card">
+                            <h4>Saving Goals</h4>
+                            <p id="saving-goals">Set a goal!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="finance-goals" class="finance-sub-section" style="display:none;">
+                    <h3>Saving Goals</h3>
+                    <div class="input-group">
+                        <input type="text" id="goal-name" placeholder="Goal Name (e.g. New Laptop)">
+                        <input type="number" id="goal-target" placeholder="Target Amount">
+                        <button onclick="addSavingGoal()" style="display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="plus-circle" style="width:18px;height:18px"></i>
+                            Set Goal
+                        </button>
+                    </div>
+                    <div id="goals-list" class="finance-overview-grid"></div>
+                </div>
+
+                <div id="finance-accounts" class="finance-sub-section" style="display:none;">
+                    <h3>Bank Accounts & Cards</h3>
+                    <div class="input-group">
+                        <input type="text" id="acc-name" placeholder="Account or Card Name">
+                        <select id="acc-type">
+                            <option value="Bank">Bank Account</option>
+                            <option value="Card">Credit/Debit Card</option>
+                        </select>
+                        <input type="number" id="acc-balance" placeholder="Balance">
+                        <button onclick="addAccount()">Add Account</button>
+                    </div>
+                    <div id="accounts-list" class="finance-overview-grid"></div>
+                </div>
+
+                <div id="finance-add" class="finance-sub-section" style="display:none;">
+                    <h3>Add New Transaction</h3>
                     <div class="input-group">
                         <select id="currency" onchange="updateChartLabel()">
                             <option value="LKR">LKR (Rs)</option>
@@ -58,11 +136,21 @@
                         <select id="sub-category">
                             <!-- Populated by JS -->
                         </select>
-                        <button onclick="updateFinance()">Add Entry</button>
+                        <select id="transaction-account">
+                            <option value="">Select Account</option>
+                        </select>
+                        <button onclick="addFinanceEntry()">Add Entry</button>
                     </div>
-                    <canvas id="financeChart" width="400" height="200"></canvas>
                 </div>
-                <div class="finance-history">
+
+                <div id="finance-summary" class="finance-sub-section" style="display:none;">
+                    <h3>Financial Summary</h3>
+                    <div class="finance-grid">
+                        <canvas id="financeChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <div id="finance-history" class="finance-sub-section" style="display:none;">
                     <h3>Transaction History</h3>
                     <ul id="history-list"></ul>
                 </div>
@@ -75,8 +163,21 @@
                     <div id="subject-list">
                         <div class="subject-row">
                             <input type="text" placeholder="Subject Name">
-                            <input type="number" class="credits" placeholder="Credits">
-                            <input type="number" class="marks" placeholder="Marks (0-100)">
+                            <input type="number" class="credits" placeholder="Credits" oninput="calculateGPA()">
+                            <select class="grade" onchange="calculateGPA()">
+                                <option value="4.0">A+</option>
+                                <option value="4.0">A</option>
+                                <option value="3.7">A-</option>
+                                <option value="3.3">B+</option>
+                                <option value="3.0">B</option>
+                                <option value="2.7">B-</option>
+                                <option value="2.3">C+</option>
+                                <option value="2.0">C</option>
+                                <option value="1.7">C-</option>
+                                <option value="1.3">D+</option>
+                                <option value="1.0">D</option>
+                                <option value="0.0">F</option>
+                            </select>
                         </div>
                     </div>
                     <button onclick="addSubjectRow()">+ Add Subject</button>
@@ -91,29 +192,12 @@
             <!-- Notepad Section -->
             <section id="notepad" class="app-section" style="display:none;">
                 <h2>Unit-wise Notepad</h2>
-                <select id="unit-selector">
+                <select id="unit-selector" onchange="loadNote()">
                     <option value="unit1">Unit 1</option>
                     <option value="unit2">Unit 2</option>
                 </select>
                 <textarea id="note-area" placeholder="Write your notes here..."></textarea>
                 <button onclick="saveNote()">Save Note</button>
-            </section>
-
-            <!-- Lectures & Events Section -->
-            <section id="lectures" class="app-section" style="display:none;">
-                <h2>Add Lectures & Events</h2>
-                <div class="input-group">
-                    <input type="text" id="lec-name" placeholder="Lecture Title or Event Name">
-                    <input type="date" id="lec-date">
-                    <input type="time" id="lec-time">
-                    <select id="lec-type">
-                        <option value="lecture">Lecture</option>
-                        <option value="event">Event</option>
-                        <option value="workshop">Workshop</option>
-                    </select>
-                    <button onclick="addLecture()">Add to Schedule</button>
-                </div>
-                <p><small>Note: Adding here will automatically mark the item in your main Calendar.</small></p>
             </section>
 
             <!-- Calendar Section -->
@@ -153,6 +237,84 @@
                 <h2>Welcome to Study-Fixer</h2>
                 <div id="clock-display">00:00:00</div>
                 <p>Work Progress: <progress id="work-progress" value="0" max="100"></progress></p>
+                <p>GPA Progress: <progress id="gpa-progress" value="0" max="4"></progress> <span id="dash-gpa-val">0.00</span> / 4.00</p>
+
+                <div class="finance-overview-grid" style="margin-top: 30px;">
+                    <div class="overview-card">
+                        <h4 style="color: #f59e0b;">Next Assignment</h4>
+                        <p id="next-assignment-days">-</p>
+                        <small id="next-assignment-name">No upcoming</small>
+                    </div>
+                    <div class="overview-card">
+                        <h4 style="color: #ef4444;">Next Deadline</h4>
+                        <p id="next-deadline-days">-</p>
+                        <small id="next-deadline-name">No upcoming</small>
+                    </div>
+                    <div class="overview-card">
+                        <h4 style="color: #8b5cf6;">Next Exam</h4>
+                        <p id="next-exam-days">-</p>
+                        <small id="next-exam-name">No upcoming</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Work Schedule Section -->
+            <section id="work-schedule" class="app-section" style="display:none;">
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Daily Work Schedule (30 min units)</h2>
+                    <button onclick="clearSchedule()" style="background:#f43f5e; color:white; border:none;">Clear All</button>
+                </div>
+                <div id="schedule-grid" class="schedule-grid">
+                    <!-- Generated by JS -->
+                </div>
+            </section>
+
+            <!-- Module Notes Section -->
+            <section id="module-notes" class="app-section" style="display:none;">
+                <h2>Module Notes & Resources</h2>
+                <div class="input-group">
+                    <input type="text" id="module-note-name" placeholder="Resource Name">
+                    <input type="url" id="module-note-link" placeholder="Link (URL) - Optional if uploading file">
+                    <input type="file" id="module-file-upload" class="file-input">
+                    <select id="module-note-type">
+                        <option value="document">Document</option>
+                        <option value="video">Video</option>
+                        <option value="image">Image</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <button onclick="addModuleNote()">Add Resource</button>
+                </div>
+                <ul id="module-notes-list"></ul>
+            </section>
+
+            <!-- Curriculum Modules Section -->
+            <section id="curriculum-modules" class="app-section" style="display:none;">
+                <h2>Curriculum Modules (IS Degree)</h2>
+                <div class="finance-tabs">
+                    <button class="finance-tab-btn active" onclick="renderCurriculum(1, this)">Year 1</button>
+                    <button class="finance-tab-btn" onclick="renderCurriculum(2, this)">Year 2</button>
+                    <button class="finance-tab-btn" onclick="renderCurriculum(3, this)">Year 3</button>
+                    <button class="finance-tab-btn" onclick="renderCurriculum(4, this)">Year 4</button>
+                </div>
+                <!-- Module Management Form -->
+                <div class="input-group" id="module-management-form" style="margin-top: 15px; padding: 15px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-color);">
+                    <input type="hidden" id="edit-module-code" value="">
+                    <select id="mod-semester">
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                    </select>
+                    <input type="text" id="mod-code" placeholder="Code (e.g. IS 1201)">
+                    <input type="text" id="mod-title" placeholder="Module Title">
+                    <input type="text" id="mod-credits" placeholder="Credits (e.g. 2L+1P)">
+                    <label style="display:flex; align-items:center; gap:5px; font-size: 0.8rem;">
+                        <input type="checkbox" id="mod-nongpa"> Non-GPA
+                    </label>
+                    <button id="save-mod-btn" onclick="saveModule()">Add Module</button>
+                    <button id="cancel-mod-btn" onclick="resetModuleForm()" style="display:none; background:#64748b; color:white;">Cancel</button>
+                </div>
+                <div id="modules-container">
+                    <!-- Modules will be rendered here -->
+                </div>
             </section>
         </main>
     </div>

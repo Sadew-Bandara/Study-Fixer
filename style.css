@@ -45,7 +45,7 @@ body {
     gap: 12px;
     padding: 10px 15px;
     margin-bottom: 30px;
-    color: var(--accent-color);
+    color: #6366f1; /* Consistent purple color for logo in all modes */
 }
 
 .logo {
@@ -81,8 +81,29 @@ body {
 }
 
 .nav-btn i {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
+    padding: 10px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+/* Modern Colorful Icon Themes */
+.icon-dashboard { color: #6366f1; background: rgba(99, 102, 241, 0.12); }
+.icon-finance { color: #10b981; background: rgba(16, 185, 129, 0.12); }
+.icon-notepad { color: #f59e0b; background: rgba(245, 158, 11, 0.12); }
+.icon-calendar { color: #ef4444; background: rgba(239, 68, 68, 0.12); }
+.icon-gpa { color: #8b5cf6; background: rgba(139, 92, 246, 0.12); }
+.icon-notes { color: #0ea5e9; background: rgba(14, 165, 233, 0.12); }
+.icon-schedule { color: #ec4899; background: rgba(236, 72, 153, 0.12); }
+.icon-curriculum { color: #f43f5e; background: rgba(244, 63, 94, 0.12); }
+
+.nav-btn:hover i {
+    background: white;
+    transform: scale(1.1);
 }
 
 .content {
@@ -236,6 +257,18 @@ input, select, button {
 
 .delete-btn:hover { opacity: 0.7; }
 
+.add-money-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    transition: opacity 0.2s;
+}
+
+.add-money-btn:hover { opacity: 0.7; }
+
 .calendar-view {
     margin-bottom: 30px;
     background: var(--bg-color);
@@ -293,4 +326,144 @@ input, select, button {
     border-radius: 50%;
     position: absolute;
     bottom: 5px;
+}
+
+.finance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+}
+
+/* Specific styling for module notes, if needed, can go here */
+/* For now, reusing .event-item and .event-badge for visual consistency */
+
+.finance-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.finance-tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-color);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.finance-tab-btn:hover {
+    color: var(--accent-color);
+}
+
+.finance-tab-btn.active {
+    color: var(--accent-color);
+    border-bottom: 2px solid var(--accent-color);
+    font-weight: bold;
+}
+
+.finance-sub-section {
+    margin-top: 20px;
+}
+
+.finance-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.overview-card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.overview-card h4 {
+    margin-top: 0;
+    color: var(--accent-color);
+}
+
+.overview-card p {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 0;
+}
+.file-input {
+    max-width: 250px;
+    font-size: 0.85rem;
+}
+
+.file-input::file-selector-button {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: opacity 0.2s;
+}
+
+.file-input::file-selector-button:hover {
+    opacity: 0.8;
+}
+
+.goal-progress-container {
+    width: 100%;
+    background: var(--border-color);
+    height: 8px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+.goal-progress-bar {
+    height: 100%;
+    background: var(--accent-color);
+    border-radius: 4px;
+    transition: width 0.3s;
+}
+
+.schedule-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.schedule-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    background: var(--bg-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.schedule-item.has-merged-next {
+    border-bottom: none;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: 0;
+}
+
+.schedule-item.merged-item {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.schedule-time {
+    font-weight: bold;
+    min-width: 60px;
+    font-size: 0.85rem;
+    opacity: 0.8;
 }

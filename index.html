@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study-Fixer | Student Management Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js for Financial Tracker -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-container">
+                <i data-lucide="graduation-cap" class="logo-icon"></i>
+                <h1 class="logo">Study-Fixer</h1>
+            </div>
+            <nav>
+                <button onclick="showSection('dashboard')" class="nav-btn"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+                <button onclick="showSection('finance')" class="nav-btn"><i data-lucide="wallet"></i> Finance</button>
+                <button onclick="showSection('lectures')" class="nav-btn"><i data-lucide="book-open"></i> Lectures</button>
+                <button onclick="showSection('notepad')" class="nav-btn"><i data-lucide="file-text"></i> Notepad</button>
+                <button onclick="showSection('calendar')" class="nav-btn"><i data-lucide="calendar"></i> Calendar</button>
+                <button onclick="showSection('gpa')" class="nav-btn"><i data-lucide="calculator"></i> GPA Tracker</button>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <div class="top-header">
+                <button id="theme-btn" class="theme-pill"><span>🌙</span> Dark Mode</button>
+            </div>
+
+            <!-- Financial Tracker Section -->
+            <section id="finance" class="app-section" style="display:none;">
+                <h2>Financial Tracker</h2>
+                <div class="finance-grid">
+                    <div class="input-group">
+                        <select id="currency" onchange="updateChartLabel()">
+                            <option value="LKR">LKR (Rs)</option>
+                            <option value="USD">USD ($)</option>
+                            <option value="EUR">EUR (€)</option>
+                            <option value="GBP">GBP (£)</option>
+                            <option value="INR">INR (₹)</option>
+                            <option value="AUD">AUD ($)</option>
+                            <option value="CAD">CAD ($)</option>
+                            <option value="JPY">JPY (¥)</option>
+                            <option value="CNY">CNY (¥)</option>
+                            <option value="AED">AED (د.إ)</option>
+                        </select>
+                        <input type="number" id="amount" placeholder="Amount">
+                        <select id="type" onchange="updateSubCategories()">
+                            <option value="income">Income</option>
+                            <option value="expenses">Expense</option>
+                            <option value="savings">Savings</option>
+                        </select>
+                        <select id="sub-category">
+                            <!-- Populated by JS -->
+                        </select>
+                        <button onclick="updateFinance()">Add Entry</button>
+                    </div>
+                    <canvas id="financeChart" width="400" height="200"></canvas>
+                </div>
+                <div class="finance-history">
+                    <h3>Transaction History</h3>
+                    <ul id="history-list"></ul>
+                </div>
+            </section>
+
+            <!-- GPA Calculator Section -->
+            <section id="gpa" class="app-section" style="display:none;">
+                <h2>GPA & Prediction</h2>
+                <div class="gpa-container">
+                    <div id="subject-list">
+                        <div class="subject-row">
+                            <input type="text" placeholder="Subject Name">
+                            <input type="number" class="credits" placeholder="Credits">
+                            <input type="number" class="marks" placeholder="Marks (0-100)">
+                        </div>
+                    </div>
+                    <button onclick="addSubjectRow()">+ Add Subject</button>
+                    <button onclick="calculateGPA()">Calculate & Predict</button>
+                    <div id="gpa-result">
+                        <p>Current GPA: <span id="current-gpa">0.00</span></p>
+                        <p id="prediction-msg"></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Notepad Section -->
+            <section id="notepad" class="app-section" style="display:none;">
+                <h2>Unit-wise Notepad</h2>
+                <select id="unit-selector">
+                    <option value="unit1">Unit 1</option>
+                    <option value="unit2">Unit 2</option>
+                </select>
+                <textarea id="note-area" placeholder="Write your notes here..."></textarea>
+                <button onclick="saveNote()">Save Note</button>
+            </section>
+
+            <!-- Lectures & Events Section -->
+            <section id="lectures" class="app-section" style="display:none;">
+                <h2>Add Lectures & Events</h2>
+                <div class="input-group">
+                    <input type="text" id="lec-name" placeholder="Lecture Title or Event Name">
+                    <input type="date" id="lec-date">
+                    <input type="time" id="lec-time">
+                    <select id="lec-type">
+                        <option value="lecture">Lecture</option>
+                        <option value="event">Event</option>
+                        <option value="workshop">Workshop</option>
+                    </select>
+                    <button onclick="addLecture()">Add to Schedule</button>
+                </div>
+                <p><small>Note: Adding here will automatically mark the item in your main Calendar.</small></p>
+            </section>
+
+            <!-- Calendar Section -->
+            <section id="calendar" class="app-section" style="display:none;">
+                <h2>Deadlines & Academic Calendar</h2>
+                <div class="input-group">
+                    <input type="text" id="event-name" placeholder="Assignment or Lecture Name">
+                    <input type="date" id="event-date">
+                    <input type="time" id="event-time">
+                    <select id="event-type">
+                        <option value="assignment">Assignment</option>
+                        <option value="deadline">Deadline</option>
+                        <option value="lecture">Lecture</option>
+                        <option value="exam">Exam</option>
+                    </select>
+                    <button onclick="addEvent()">Add Event</button>
+                </div>
+                <div class="calendar-view">
+                    <div class="calendar-header">
+                        <button onclick="changeMonth(-1)"><i data-lucide="chevron-left"></i></button>
+                        <h3 id="calendar-month-year">Month Year</h3>
+                        <button onclick="changeMonth(1)"><i data-lucide="chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+                    <div id="calendar-grid" class="calendar-grid"></div>
+                </div>
+                <div class="calendar-content">
+                    <h3>Upcoming Schedule</h3>
+                    <ul id="event-list"></ul>
+                </div>
+            </section>
+
+            <!-- Dashboard / Clock Section -->
+            <section id="dashboard" class="app-section">
+                <h2>Welcome to Study-Fixer</h2>
+                <div id="clock-display">00:00:00</div>
+                <p>Work Progress: <progress id="work-progress" value="0" max="100"></progress></p>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

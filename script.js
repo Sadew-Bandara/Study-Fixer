@@ -238,11 +238,16 @@ function calculateFinanceOverview() {
 
     // Update Overview Goal Card with total progress
     const totalGoalTarget = savingGoals.reduce((sum, g) => sum + g.target, 0);
+    const bar = document.getElementById('saving-goals-bar');
+    const val = document.getElementById('saving-goals-val');
+
     if (totalGoalTarget > 0) {
         const progress = Math.min((totalSavings / totalGoalTarget) * 100, 100);
-        document.getElementById('saving-goals').innerText = `${progress.toFixed(0)}% Achieved`;
+        if (bar) bar.style.width = `${progress}%`;
+        if (val) val.innerText = `${progress.toFixed(0)}% Achieved`;
     } else {
-        document.getElementById('saving-goals').innerText = "No active goals";
+        if (bar) bar.style.width = `0%`;
+        if (val) val.innerText = "No active goals";
     }
 }
 
@@ -499,9 +504,9 @@ function calculateGPA() {
     document.getElementById('current-gpa').innerText = gpa;
 
     // Update Dashboard GPA Progress
-    const dashGpaBar = document.getElementById('gpa-progress');
+    const dashGpaBar = document.getElementById('gpa-progress-bar');
     const dashGpaVal = document.getElementById('dash-gpa-val');
-    if (dashGpaBar) dashGpaBar.value = gpa;
+    if (dashGpaBar) dashGpaBar.style.width = `${(gpa / 4) * 100}%`;
     if (dashGpaVal) dashGpaVal.innerText = gpa;
 
     // 7. Prediction Logic
@@ -513,14 +518,27 @@ function calculateGPA() {
     document.getElementById('prediction-msg').innerText = prediction;
 }
 
-// 5. Clock & Progress
-function updateClock() {
-    const now = new Date();
-    document.getElementById('clock-display').innerText = now.toLocaleTimeString();
+// 6. Work Schedule Logic
+let currentScheduleDate = new Date().toISOString().split('T')[0];
+let scheduleData = [];
+
+function getScheduleKey(date) {
+    return `workSchedule_${date}`;
 }
 
-// 6. Work Schedule Logic
-let scheduleData = JSON.parse(localStorage.getItem('workSchedule')) || Array.from({length: 48}, () => ({ name: '', done: false, merged: false }));
+function loadScheduleForDate(date) {
+    currentScheduleDate = date;
+    const saved = localStorage.getItem(getScheduleKey(date));
+    scheduleData = saved ? JSON.parse(saved) : Array.from({length: 48}, () => ({ name: '', done: false, merged: false }));
+    
+    const dateInput = document.getElementById('schedule-date');
+    if (dateInput) dateInput.value = date;
+}
+
+function changeScheduleDate(date) {
+    loadScheduleForDate(date);
+    renderSchedule();
+}
 
 function renderSchedule() {
     const container = document.getElementById('schedule-grid');
@@ -575,7 +593,7 @@ function updateSchedule(index, field, value) {
         scheduleData[i][field] = value;
     }
 
-    localStorage.setItem('workSchedule', JSON.stringify(scheduleData));
+    localStorage.setItem(getScheduleKey(currentScheduleDate), JSON.stringify(scheduleData));
     renderSchedule();
 }
 
@@ -585,7 +603,7 @@ function toggleMerge(index) {
         scheduleData[index].name = scheduleData[index - 1].name;
         scheduleData[index].done = scheduleData[index - 1].done;
     }
-    localStorage.setItem('workSchedule', JSON.stringify(scheduleData));
+    localStorage.setItem(getScheduleKey(currentScheduleDate), JSON.stringify(scheduleData));
     renderSchedule();
 }
 
@@ -594,14 +612,14 @@ function updateWorkProgress() {
     const done = scheduleData.filter(item => item.done).length;
     const progress = (done / total) * 100;
     
-    const progressBar = document.getElementById('work-progress');
-    if (progressBar) progressBar.value = progress;
+    const progressBar = document.getElementById('work-progress-bar');
+    if (progressBar) progressBar.style.width = `${progress}%`;
 }
 
 function clearSchedule() {
     if (confirm("Reset all schedule tasks and ticks?")) {
         scheduleData = Array.from({length: 48}, () => ({ name: '', done: false, merged: false }));
-        localStorage.setItem('workSchedule', JSON.stringify(scheduleData));
+        localStorage.setItem(getScheduleKey(currentScheduleDate), JSON.stringify(scheduleData));
         renderSchedule();
     }
 }
@@ -714,7 +732,7 @@ function updateDashboardCounters() {
     };
 
     const summaryCards = [
-        { type: 'Assignment', count: counts.assignment, icon: 'book-open', color: '#f59e0b' },
+        { type: 'Assignment', count: counts.assignment, icon: 'clipboard-list', color: '#3b82f6' },
         { type: 'Lecture', count: counts.lecture, icon: 'presentation', color: '#10b981' },
         { type: 'Exam', count: counts.exam, icon: 'graduation-cap', color: '#ef4444' },
         { type: 'Deadline', count: counts.deadline, icon: 'clock', color: '#f59e0b' }
@@ -906,6 +924,7 @@ window.onload = () => {
     renderAccounts();
     renderSavingGoals();
     showFinanceSubSection('overview'); // Show overview by default
+    loadScheduleForDate(new Date().toISOString().split('T')[0]);
     renderSchedule();
     renderCalendarGrid();
     renderEvents();
@@ -913,7 +932,6 @@ window.onload = () => {
     renderModuleNotes();
     loadNote(); // Load the initial unit's note
     lucide.createIcons();
-    setInterval(updateClock, 1000);
 };
 
 // 9. Curriculum Modules Logic

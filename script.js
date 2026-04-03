@@ -1,4 +1,10 @@
 // 1. Theme Toggle Logic
+function triggerHaptic() {
+    if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(10); // Short 10ms vibration
+    }
+}
+
 const themeBtn = document.getElementById('theme-btn');
 
 function updateThemeUI(theme) {
@@ -133,6 +139,7 @@ function addFinanceEntry() {
     updateChartData();
     renderSavingGoals();
     renderLog(); // Re-render log after adding
+    triggerHaptic();
     
     amountInput.value = '';
     accountSelect.value = '';
@@ -902,6 +909,7 @@ function saveNote() {
     const unit = unitSelector.value;
     const text = noteArea.value;
     localStorage.setItem(`note_${unit}`, text);
+    triggerHaptic();
     alert("Note saved successfully for " + unit.toUpperCase());
 }
 

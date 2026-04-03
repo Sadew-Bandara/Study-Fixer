@@ -207,6 +207,8 @@
                     <input type="text" id="event-name" placeholder="Assignment or Lecture Name">
                     <input type="date" id="event-date">
                     <input type="time" id="event-time">
+                    <input type="date" id="event-deadline" title="Deadline Date (Optional)">
+                    <input type="time" id="event-deadline-time" title="Deadline Time (Optional)">
                     <select id="event-type">
                         <option value="assignment">Assignment</option>
                         <option value="deadline">Deadline</option>
@@ -239,22 +241,9 @@
                 <p>Work Progress: <progress id="work-progress" value="0" max="100"></progress></p>
                 <p>GPA Progress: <progress id="gpa-progress" value="0" max="4"></progress> <span id="dash-gpa-val">0.00</span> / 4.00</p>
 
-                <div class="finance-overview-grid" style="margin-top: 30px;">
-                    <div class="overview-card">
-                        <h4 style="color: #f59e0b;">Next Assignment</h4>
-                        <p id="next-assignment-days">-</p>
-                        <small id="next-assignment-name">No upcoming</small>
-                    </div>
-                    <div class="overview-card">
-                        <h4 style="color: #ef4444;">Next Deadline</h4>
-                        <p id="next-deadline-days">-</p>
-                        <small id="next-deadline-name">No upcoming</small>
-                    </div>
-                    <div class="overview-card">
-                        <h4 style="color: #8b5cf6;">Next Exam</h4>
-                        <p id="next-exam-days">-</p>
-                        <small id="next-exam-name">No upcoming</small>
-                    </div>
+                <h3 style="margin-top: 30px;">This Month's Summary</h3>
+                <div id="month-summary-grid" class="finance-overview-grid">
+                    <!-- Dynamically populated by JS -->
                 </div>
             </section>
 
@@ -289,7 +278,7 @@
 
             <!-- Curriculum Modules Section -->
             <section id="curriculum-modules" class="app-section" style="display:none;">
-                <h2>Curriculum Modules (IS Degree)</h2>
+                <h2>Curriculum Modules (Degree)</h2>
                 <div class="finance-tabs">
                     <button class="finance-tab-btn active" onclick="renderCurriculum(1, this)">Year 1</button>
                     <button class="finance-tab-btn" onclick="renderCurriculum(2, this)">Year 2</button>

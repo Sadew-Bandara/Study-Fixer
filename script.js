@@ -26,6 +26,10 @@ function showSection(sectionId) {
         section.style.display = 'none';
     });
     targetSection.style.display = 'block';
+    
+    // Scroll to top of content area on section change (important for mobile)
+    const contentArea = document.querySelector('.content');
+    if (contentArea) contentArea.scrollTop = 0;
 }
 
 // 3. Financial Tracker with Chart.js
@@ -611,6 +615,8 @@ function addEvent() {
     const dateInput = document.getElementById('event-date');
     const timeInput = document.getElementById('event-time');
     const typeInput = document.getElementById('event-type');
+    const deadlineInput = document.getElementById('event-deadline');
+    const deadlineTimeInput = document.getElementById('event-deadline-time');
 
     if (!nameInput.value || !dateInput.value) return;
     
@@ -618,7 +624,9 @@ function addEvent() {
         name: nameInput.value,
         date: dateInput.value,
         time: timeInput.value,
-        type: typeInput.value
+        type: typeInput.value,
+        deadline: deadlineInput.value,
+        deadlineTime: deadlineTimeInput.value
     });
 
     saveEvents();
@@ -627,6 +635,9 @@ function addEvent() {
     updateDashboardCounters();
     nameInput.value = '';
     dateInput.value = '';
+    timeInput.value = '';
+    deadlineInput.value = '';
+    deadlineTimeInput.value = '';
 }
 
 function renderEvents() {
@@ -651,9 +662,22 @@ function renderEvents() {
             formattedTime = ` • ${hours}:${minutes} ${ampm}`;
         }
 
+        let deadlineHtml = '';
+        if (event.deadline) {
+            const [dYear, dMonth, dDay] = event.deadline.split('-');
+            let formattedDeadlineTime = '';
+            if (event.deadlineTime) {
+                let [dHours, dMinutes] = event.deadlineTime.split(':');
+                const dAmpm = dHours >= 12 ? 'PM' : 'AM';
+                dHours = dHours % 12 || 12;
+                formattedDeadlineTime = ` at ${dHours}:${dMinutes} ${dAmpm}`;
+            }
+            deadlineHtml = `<br><small style="color: #ef4444; font-weight: 600;">Deadline: ${dMonth}/${dDay}/${dYear}${formattedDeadlineTime}</small>`;
+        }
+
         li.innerHTML = `
             <div style="flex:1">
-                <strong>${event.name}</strong><br>
+                <strong>${event.name}</strong>${deadlineHtml}<br>
                 <small>${formattedDate}${formattedTime}</small>
             </div>
             <span class="event-badge">${event.type}</span>
@@ -669,35 +693,42 @@ function saveEvents() {
 }
 
 function updateDashboardCounters() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const grid = document.getElementById('month-summary-grid');
+    if (!grid) return;
 
-    const types = ['assignment', 'deadline', 'exam'];
-    
-    types.forEach(type => {
-        const upcoming = events
-            .filter(e => e.type === type && new Date(e.date) >= today)
-            .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        const daysEl = document.getElementById(`next-${type}-days`);
-        const nameEl = document.getElementById(`next-${type}-name`);
-
-        if (!daysEl || !nameEl) return;
-
-        if (upcoming.length > 0) {
-            const nextEvent = upcoming[0];
-            const eventDate = new Date(nextEvent.date);
-            eventDate.setHours(0,0,0,0);
-            const diffTime = eventDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            daysEl.innerText = diffDays === 0 ? "Today" : `${diffDays} Day${diffDays !== 1 ? 's' : ''}`;
-            nameEl.innerText = nextEvent.name;
-        } else {
-            daysEl.innerText = "-";
-            nameEl.innerText = "No upcoming";
-        }
+    const monthEvents = events.filter(e => {
+        const eventDate = new Date(e.date);
+        const deadlineDate = e.deadline ? new Date(e.deadline) : null;
+        return (eventDate.getMonth() === currentMonth && eventDate.getFullYear() === currentYear) ||
+               (deadlineDate && deadlineDate.getMonth() === currentMonth && deadlineDate.getFullYear() === currentYear);
     });
+
+    const counts = {
+        assignment: monthEvents.filter(e => e.type === 'assignment').length,
+        lecture: monthEvents.filter(e => e.type === 'lecture').length,
+        exam: monthEvents.filter(e => e.type === 'exam').length,
+        deadline: monthEvents.filter(e => e.type === 'deadline' || (e.deadline && e.deadline.trim() !== "")).length
+    };
+
+    const summaryCards = [
+        { type: 'Assignment', count: counts.assignment, icon: 'book-open', color: '#f59e0b' },
+        { type: 'Lecture', count: counts.lecture, icon: 'presentation', color: '#10b981' },
+        { type: 'Exam', count: counts.exam, icon: 'graduation-cap', color: '#ef4444' },
+        { type: 'Deadline', count: counts.deadline, icon: 'clock', color: '#f59e0b' }
+    ];
+
+    grid.innerHTML = summaryCards.map(card => `
+        <div class="overview-card">
+            <i data-lucide="${card.icon}" style="color: ${card.color}; margin-bottom: 10px;"></i>
+            <h4 style="color: ${card.color}; margin: 5px 0;">${card.type}s</h4>
+            <p style="font-size: 1.5rem;">${card.count}</p>
+            <small>This Month</small>
+        </div>
+    `).join('');
+    lucide.createIcons();
 }
 
 function renderCalendarGrid() {
@@ -729,8 +760,16 @@ function renderCalendarGrid() {
 
         const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
-        if (events.some(e => e.date === dateString)) {
-            dayDiv.classList.add('has-event');
+        const dayEvents = events.filter(e => e.date === dateString || e.deadline === dateString);
+        
+        if (dayEvents.some(e => e.type === 'exam')) {
+            dayDiv.classList.add('has-exam');
+        } else if (dayEvents.some(e => e.deadline === dateString || e.type === 'deadline')) {
+            dayDiv.classList.add('has-deadline');
+        } else if (dayEvents.some(e => e.type === 'assignment')) {
+            dayDiv.classList.add('has-assignment');
+        } else if (dayEvents.some(e => e.type === 'lecture')) {
+            dayDiv.classList.add('has-lecture');
         }
 
         if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
